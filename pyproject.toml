@@ -10,6 +10,10 @@ packages = [{include = "coursework_module3"}]
 python = "^3.10"
 
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.3.2"
+pytest-cov = "^4.1.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

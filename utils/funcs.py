@@ -78,7 +78,7 @@ def correct_card_name(operation):
     Принимает на вход отчет об одной операции в виде словаря
     и возвращает имя карты без цифр
     """
-    card_name = operation["from"]
+    card_name = operation
     index_counter = 0
     for symbol in card_name:
         if symbol.isnumeric():
@@ -93,7 +93,7 @@ def correct_card_info(operation):
     и возвращает имя и номер карты. Номер разбит на блоки, цифры скрыты в
     соответствии с заданием
     """
-    card_info = operation["from"]
+    card_info = operation
     card_name, index_counter = correct_card_name(operation)
     card_number = card_info[index_counter:]
     card_number_arr = [
@@ -137,6 +137,11 @@ def print_message():
                 print(operation["operationAmount"]["amount"], operation["operationAmount"]["currency"]["name"], "\n")
 
             else:
-                print(correct_date(operation), operation["description"])
-                print(correct_card_info(operation), "->", correct_bank_account(operation["to"]))
-                print(operation["operationAmount"]["amount"], operation["operationAmount"]["currency"]["name"], "\n")
+                if operation["to"][:5] == "Счет ":
+                    print(correct_date(operation), operation["description"])
+                    print(correct_card_info(operation["from"]), "->", correct_bank_account(operation["to"]))
+                    print(operation["operationAmount"]["amount"], operation["operationAmount"]["currency"]["name"], "\n")
+                else:
+                    print(correct_date(operation), operation["description"])
+                    print(correct_card_info(operation["from"]), "->", correct_card_info(operation["to"]))
+                    print(operation["operationAmount"]["amount"], operation["operationAmount"]["currency"]["name"], "\n")
