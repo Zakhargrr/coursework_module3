@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "coursework-module3"
+version = "0.1.0"
+description = ""
+authors = ["zakhar <grankin-zakhar@mail.ru>"]
+readme = "README.md"
+packages = [{include = "coursework_module3"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
