@@ -11,11 +11,10 @@ def load_operations():
         return f_content
 
 
-def last_five_exec_ops():
+def last_five_exec_ops(operations):
     """
     Возвращает список из 5 последних совершенных (EXECUTED) операций
     """
-    operations = json.loads(load_operations())
     counter = 0
     exec_operations = []
     for operation in operations:
@@ -30,7 +29,7 @@ def last_five_exec_ops():
 def operations_sorted(operations):
     """
     Принимает на вход список из 5 последних совершенных (EXECUTED)
-    операций и возвращает отсортированный по дате массив
+    операций в виде словарей и возвращает отсортированный по дате массив
     """
     operations_sorted = []
     while operations:
@@ -44,15 +43,21 @@ def operations_sorted(operations):
             cur_m = int(operations[i]["date"][5:7])
             cur_d = int(operations[i]["date"][8:10])
             if cur_y > max_y:
-                max_y, max_m, max_d = cur_y, cur_m, cur_d
+                max_y = cur_y
+                max_m = cur_m
+                max_d = cur_d
                 max_index = i
             elif cur_y == max_y:
                 if cur_m > max_m:
-                    max_y, max_m, max_d = cur_y, cur_m, cur_d
+                    max_y = cur_y
+                    max_m = cur_m
+                    max_d = cur_d
                     max_index = i
                 elif cur_m == max_m:
                     if cur_d > max_d:
-                        max_y, max_m, max_d = cur_y, cur_m, cur_d
+                        max_y = cur_y
+                        max_m = cur_m
+                        max_d = cur_d
                         max_index = i
         operations_sorted.append(operations[max_index])
         operations.pop(max_index)
@@ -75,7 +80,7 @@ def correct_date(operation):
 
 def correct_card_name(operation):
     """
-    Принимает на вход отчет об одной операции в виде словаря
+    Принимает на вход отчет об одной операции в виде строки
     и возвращает имя карты без цифр
     """
     card_name = operation
@@ -89,7 +94,7 @@ def correct_card_name(operation):
 
 def correct_card_info(operation):
     """
-    Принимает на вход отчет об одной операции в виде словаря
+    Принимает на вход отчет об одной операции в виде строки
     и возвращает имя и номер карты. Номер разбит на блоки, цифры скрыты в
     соответствии с заданием
     """
@@ -118,30 +123,70 @@ def correct_bank_account(operation):
     return correct_bank_account
 
 
+def create_acc_msg(operation):
+    """
+    Принимает на вход отчет об одной операции в виде словаря
+    и возвращает сообщение об открытии вклада
+    """
+    result = ""
+    result += correct_date(operation) + " " + operation["description"] + "\n"
+    result += correct_bank_account(operation["to"]) + "\n"
+    result += operation["operationAmount"]["amount"] + " " + operation["operationAmount"]["currency"]["name"] + "\n"
+    return result
+
+
+def from_acc_to_acc_msg(operation):
+    """
+    Принимает на вход отчет об одной операции в виде словаря
+    и возвращает сообщение о переводе со счета на счет
+    """
+    result = ""
+    result += correct_date(operation) + " " + operation["description"] + "\n"
+    result += correct_bank_account(operation["from"]) + " -> " + correct_bank_account(operation["to"]) + "\n"
+    result += operation["operationAmount"]["amount"] + " " + operation["operationAmount"]["currency"]["name"] + "\n"
+    return result
+
+
+def from_card_to_acc_msg(operation):
+    """
+    Принимает на вход отчет об одной операции в виде словаря
+    и возвращает сообщение о переводе с карты на счет
+    """
+    result = ""
+    result += correct_date(operation) + " " + operation["description"] + "\n"
+    result += correct_card_info(operation["from"]) + " -> " + correct_bank_account(operation["to"]) + "\n"
+    result += operation["operationAmount"]["amount"] + " " + operation["operationAmount"]["currency"]["name"] + "\n"
+    return result
+
+
+def from_card_to_card_msg(operation):
+    """
+    Принимает на вход отчет об одной операции в виде словаря
+    и возвращает сообщение о переводе с карты на карту
+    """
+    result = ""
+    result += correct_date(operation) + " " + operation["description"] + "\n"
+    result += correct_card_info(operation["from"]) + " -> " + correct_card_info(operation["to"]) + "\n"
+    result += operation["operationAmount"]["amount"] + " " + operation["operationAmount"]["currency"]["name"] + "\n"
+    return result
+
+
 def print_message():
     """
     Выводит сообщения о пяти последних исполненных
     операциях в нужном формате
     """
-    exec_operations = last_five_exec_ops()
+    operations = json.loads(load_operations())
+    exec_operations = last_five_exec_ops(operations)
     sorted_operations_arr = operations_sorted(exec_operations)
     for operation in sorted_operations_arr:
         if operation["description"] == "Открытие вклада":
-            print(correct_date(operation), operation["description"])
-            print(correct_bank_account(operation["to"]))
-            print(operation["operationAmount"]["amount"], operation["operationAmount"]["currency"]["name"], "\n")
+            print(create_acc_msg(operation))
         else:
             if operation["from"][:5] == "Счет ":
-                print(correct_date(operation), operation["description"])
-                print(correct_bank_account(operation["from"]), "->", correct_bank_account(operation["to"]))
-                print(operation["operationAmount"]["amount"], operation["operationAmount"]["currency"]["name"], "\n")
-
+                print(from_acc_to_acc_msg(operation))
             else:
                 if operation["to"][:5] == "Счет ":
-                    print(correct_date(operation), operation["description"])
-                    print(correct_card_info(operation["from"]), "->", correct_bank_account(operation["to"]))
-                    print(operation["operationAmount"]["amount"], operation["operationAmount"]["currency"]["name"], "\n")
+                    print(from_card_to_acc_msg(operation))
                 else:
-                    print(correct_date(operation), operation["description"])
-                    print(correct_card_info(operation["from"]), "->", correct_card_info(operation["to"]))
-                    print(operation["operationAmount"]["amount"], operation["operationAmount"]["currency"]["name"], "\n")
+                    print(from_card_to_card_msg(operation))
