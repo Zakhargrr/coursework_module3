@@ -140,5 +140,3 @@ def print_message():
                 print(correct_date(operation), operation["description"])
                 print(correct_card_info(operation), "->", correct_bank_account(operation["to"]))
                 print(operation["operationAmount"]["amount"], operation["operationAmount"]["currency"]["name"], "\n")
-
-print_message()
